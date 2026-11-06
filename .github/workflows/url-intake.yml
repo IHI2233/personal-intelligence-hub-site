@@ -10,7 +10,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   process:
-    if: github.event.issue.author_association == 'OWNER' && contains(github.event.issue.labels.*.name, 'url-intake')
+    if: github.event.issue.author_association == 'OWNER' && startsWith(github.event.issue.title, '[URL]')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
