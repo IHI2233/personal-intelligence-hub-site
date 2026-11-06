@@ -5,11 +5,15 @@ on:
 permissions:
   contents: write
   issues: write
+  pages: write
+  id-token: write
 concurrency:
   group: url-intake-${{ github.event.issue.number }}
   cancel-in-progress: false
 jobs:
   process:
+    environment:
+      name: github-pages
     if: github.event.issue.author_association == 'OWNER' && startsWith(github.event.issue.title, '[URL]')
     runs-on: ubuntu-latest
     steps:
@@ -38,3 +42,19 @@ jobs:
           git fetch origin main
           git rebase origin/main
           git push
+
+      - name: Checkout published task state
+        uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+      - name: Upload dashboard artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: "."
+      - name: Deploy dashboard with latest task status
+        id: deployment
+        uses: actions/deploy-pages@v4
