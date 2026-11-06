@@ -1,7 +1,7 @@
 name: Process submitted article URL
 on:
   issues:
-    types: [opened]
+    types: [opened, edited]
 permissions:
   contents: write
   issues: write
@@ -44,17 +44,21 @@ jobs:
           git push
 
       - name: Checkout published task state
+        if: always()
         uses: actions/checkout@v4
         with:
           ref: main
       - name: Configure Pages
+        if: always()
         uses: actions/configure-pages@v5
         with:
           enablement: true
       - name: Upload dashboard artifact
+        if: always()
         uses: actions/upload-pages-artifact@v3
         with:
           path: "."
       - name: Deploy dashboard with latest task status
+        if: always()
         id: deployment
         uses: actions/deploy-pages@v4
