@@ -62,4 +62,6 @@ jobs:
             exit 0
           fi
           git commit -m "chore: sync public Notion intelligence data"
+          git fetch origin main
+          git rebase origin/main
           git push
