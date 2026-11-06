@@ -2,6 +2,12 @@ name: Sync public Notion intelligence data
 
 on:
   workflow_dispatch:
+  push:
+    branches: ["main"]
+    paths:
+      - "scripts/knowledge_shadow.py"
+      - "scripts/sync_notion.py"
+      - ".github/workflows/sync-notion.yml"
   schedule:
     - cron: "17 2 * * *"
 
