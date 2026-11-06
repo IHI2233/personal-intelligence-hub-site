@@ -6,7 +6,7 @@ from urllib.parse import urlsplit, urlunsplit
 INPUT = Path("data/intel.json")
 
 def norm(value):
-    return re.sub(r"\\s+", " ", str(value or "").strip()).casefold()
+    return re.sub(r"\s+, " ", str(value or "").strip()).casefold()
 
 def canonical_url(value):
     if not value:
