@@ -1,17 +1,152 @@
-const intel = [
-  {id:"ai",code:"AI",kind:"ai",title:"OpenAI API：GPT-6-Cyber 功能与访问资格更新",date:"2026-11-05",topic:"AI Agent / API",status:"partial",statusLabel:"部分验证",source:"官方日志、模型说明与价格页",summary:"官方材料可支持部分功能更新；具体资格、组织审批与可用范围仍需按账户核实。",confirmed:"已找到官方产品与模型说明材料作为核验依据。",unknown:"账户资格、组织审批状态和实际可用范围尚未确认。",next:"检查目标账户权限与官方发布说明，避免将功能发布等同于普遍可用。"},
-  {id:"ee",code:"EE",kind:"ee",title:"15 kV SiC IGBT 器件演示进展",date:"2026-10-21",topic:"电力电子 / SiC",status:"partial",statusLabel:"部分验证",source:"公开新闻稿；原始论文待补",summary:"新闻稿支持该演示事件存在，但器件结构、测试条件和性能数据仍需要原始技术材料。",confirmed:"公开新闻稿对演示事件作出说明。",unknown:"原始论文、测试报告、测试条件与可复现实验数据尚未取得。",next:"寻找论文、会议材料或测试报告，重点核对额定电压、测试条件和器件定义。"},
-  {id:"hci",code:"HCI",kind:"hci",title:"The Reflection Penalty：组织中的反思成本",date:"2026-10-15",topic:"人机信任与协作",status:"partial",statusLabel:"部分验证",source:"DOI 与论文摘要",summary:"摘要提示反思行为可能带来组织情境成本；样本范围有限，不宜直接推广到所有组织。",confirmed:"DOI 与摘要信息已核对。",unknown:"研究涉及 8 名管理者和单一组织，完整方法与外部效度仍需进一步审查。",next:"获取全文，核查研究设计、测量方法、局限性与适用边界。"}
-];
-const $ = s => document.querySelector(s);
-const listMarkup = item => `<article class="intel-card" data-id="${item.id}"><div class="intel-icon ${item.kind}">${item.code}</div><div class="intel-body"><div class="intel-title">${item.title}</div><p class="intel-summary">${item.summary}</p><div class="intel-meta"><span>${item.topic}</span><span>·</span><span>${item.date}</span><span class="tag ${item.status}">${item.statusLabel}</span><span>${item.source}</span></div></div><span class="intel-arrow">›</span></article>`;
-function renderLists(){ $("#featured-list").innerHTML=intel.map(listMarkup).join(""); renderInbox(); }
-function renderInbox(){const filter=$("#status-filter")?.value||"all";$("#inbox-list").innerHTML=intel.filter(x=>filter==="all"||x.status===filter).map(listMarkup).join("")||'<div class="panel">当前筛选条件下没有情报。</div>'; }
-function openDetail(id){const item=intel.find(x=>x.id===id);if(!item)return;$("#modal-content").innerHTML=`<span class="tag ${item.status}">${item.statusLabel}</span><h2>${item.title}</h2><div class="intel-meta">${item.topic} · ${item.date} · ${item.source}</div><h4>已确认信息</h4><p>${item.confirmed}</p><h4>待核验信息</h4><p>${item.unknown}</p><h4>建议下一步</h4><p>${item.next}</p><div class="modal-actions"><button class="action-btn primary" data-action="keep">保留并沉淀</button><button class="action-btn" data-action="verify">继续核验</button><button class="action-btn" data-action="ignore">忽略</button></div><p class="disclaimer">演示模式：这些按钮只显示提示，不会写入 Notion 或修改远端数据。</p>`;$("#detail-modal").classList.add("open");$("#detail-modal").setAttribute("aria-hidden","false");}
-function closeDetail(){$("#detail-modal").classList.remove("open");$("#detail-modal").setAttribute("aria-hidden","true");}
-function toast(message){const el=$("#toast");el.textContent=message;el.classList.add("show");setTimeout(()=>el.classList.remove("show"),2300);}
-function showView(view){document.querySelectorAll(".view").forEach(el=>el.classList.toggle("active",el.id===`view-${view}`));document.querySelectorAll(".nav-item").forEach(el=>el.classList.toggle("active",el.dataset.view===view));const names={overview:"总览仪表盘",inbox:"情报收件箱",topics:"关注主题",sources:"信息源目录",pipeline:"处理流水线"};$("#page-title").textContent=names[view]||"总览仪表盘";}
-document.addEventListener("click",e=>{const nav=e.target.closest("[data-view]");if(nav)showView(nav.dataset.view);const go=e.target.closest("[data-goto]");if(go)showView(go.dataset.goto);const card=e.target.closest(".intel-card");if(card)openDetail(card.dataset.id);const action=e.target.closest("[data-action]");if(action)toast("演示模式：未连接后端，未执行远端写入。");});
-$("#close-modal").addEventListener("click",closeDetail);$("#detail-modal").addEventListener("click",e=>{if(e.target.id==="detail-modal")closeDetail();});$("#status-filter").addEventListener("change",renderInbox);$("#refresh-btn").addEventListener("click",()=>{renderLists();toast("演示视图已刷新");});
-$("#today-label").textContent=new Intl.DateTimeFormat("zh-CN",{year:"numeric",month:"long",day:"numeric",weekday:"long"}).format(new Date());
-renderLists();
+let intel = [];
+const $ = selector => document.querySelector(selector);
+
+const escapeHtml = value => String(value ?? "").replace(/[&<>"']/g, char => ({
+  "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+}[char]));
+
+const safeHref = value => {
+  try {
+    const url = new URL(value);
+    return ["https:", "http:"].includes(url.protocol) ? url.href : "";
+  } catch {
+    return "";
+  }
+};
+
+const statusClass = value => {
+  if (value === "已验证") return "verified";
+  if (value === "部分验证" || value === "待人工审核") return "partial";
+  return "pending";
+};
+
+const statusLabel = item => item.verification || item.status || "状态未知";
+
+const listMarkup = item => {
+  const source = safeHref(item.sourceUrl);
+  return `<article class="intel-card" data-id="${escapeHtml(item.id)}">
+    <div class="intel-icon">${escapeHtml((item.field || item.type || "情报").slice(0, 2))}</div>
+    <div class="intel-body">
+      <div class="intel-title">${escapeHtml(item.title)}</div>
+      <p class="intel-summary">${escapeHtml(item.summary)}</p>
+      <div class="intel-meta">
+        <span>${escapeHtml(item.topic || item.field)}</span><span>·</span>
+        <span>${escapeHtml(item.date || "日期未记录")}</span>
+        <span class="tag ${statusClass(statusLabel(item))}">${escapeHtml(statusLabel(item))}</span>
+        <span>${escapeHtml(item.sourceLevel || "来源等级未知")}</span>
+        ${source ? `<a href="${escapeHtml(source)}" target="_blank" rel="noopener noreferrer">原始来源</a>` : ""}
+      </div>
+    </div><span class="intel-arrow">›</span>
+  </article>`;
+};
+
+function renderLists() {
+  $("#featured-list").innerHTML = intel.slice(0, 3).map(listMarkup).join("") ||
+    '<div class="panel">暂无公开情报记录。</div>';
+  renderInbox();
+  const count = intel.length;
+  const navCount = document.querySelector(".nav-count");
+  if (navCount) navCount.textContent = count;
+  const pending = intel.filter(item => item.status !== "已归档" && item.status !== "忽略").length;
+  const metrics = document.querySelectorAll(".metric-card strong");
+  if (metrics[0]) metrics[0].textContent = String(pending).padStart(2, "0");
+  if (metrics[1]) metrics[1].textContent = "03";
+  if (metrics[2]) metrics[2].textContent = String(intel.filter(item => item.status === "已归档").length).padStart(2, "0");
+  if (metrics[3]) metrics[3].textContent = "29";
+}
+
+function renderInbox() {
+  const filter = $("#status-filter")?.value || "all";
+  const filtered = intel.filter(item => filter === "all" || statusClass(statusLabel(item)) === filter);
+  $("#inbox-list").innerHTML = filtered.map(listMarkup).join("") ||
+    '<div class="panel">当前筛选条件下没有情报。</div>';
+}
+
+function openDetail(id) {
+  const item = intel.find(entry => entry.id === id);
+  if (!item) return;
+  const source = safeHref(item.sourceUrl);
+  const notion = safeHref(item.notionUrl);
+  $("#modal-content").innerHTML = `
+    <span class="tag ${statusClass(statusLabel(item))}">${escapeHtml(statusLabel(item))}</span>
+    <h2>${escapeHtml(item.title)}</h2>
+    <div class="intel-meta">${escapeHtml(item.topic || item.field)} · ${escapeHtml(item.date)}</div>
+    <h4>核心摘要</h4><p>${escapeHtml(item.summary || "暂无摘要")}</p>
+    <h4>证据与适用条件</h4><p>${escapeHtml(item.evidence || "暂无补充证据说明")}</p>
+    <h4>后续动作</h4><p>${escapeHtml(item.next || "暂无后续动作")}</p>
+    <div class="modal-actions">
+      ${source ? `<a class="action-btn primary" href="${escapeHtml(source)}" target="_blank" rel="noopener noreferrer">查看原始来源</a>` : ""}
+      ${notion ? `<a class="action-btn" href="${escapeHtml(notion)}" target="_blank" rel="noopener noreferrer">打开 Notion 记录</a>` : ""}
+    </div>
+    <p class="disclaimer">公开只读视图 · 数据来自 Notion 情报收件箱。</p>`;
+  $("#detail-modal").classList.add("open");
+  $("#detail-modal").setAttribute("aria-hidden", "false");
+}
+
+function closeDetail() {
+  $("#detail-modal").classList.remove("open");
+  $("#detail-modal").setAttribute("aria-hidden", "true");
+}
+
+function toast(message) {
+  const element = $("#toast");
+  element.textContent = message;
+  element.classList.add("show");
+  setTimeout(() => element.classList.remove("show"), 2300);
+}
+
+function showView(view) {
+  document.querySelectorAll(".view").forEach(element =>
+    element.classList.toggle("active", element.id === `view-${view}`));
+  document.querySelectorAll(".nav-item").forEach(element =>
+    element.classList.toggle("active", element.dataset.view === view));
+  const names = {overview:"总览仪表盘", inbox:"情报收件箱", topics:"关注主题", sources:"信息源目录", pipeline:"处理流水线"};
+  $("#page-title").textContent = names[view] || "总览仪表盘";
+}
+
+async function loadIntel() {
+  const refresh = $("#refresh-btn");
+  refresh.disabled = true;
+  try {
+    const response = await fetch("data/intel.json?ts=" + Date.now(), {cache:"no-store"});
+    if (!response.ok) throw new Error("数据接口返回 " + response.status);
+    const payload = await response.json();
+    if (!Array.isArray(payload.items)) throw new Error("数据格式不正确");
+    intel = payload.items;
+    renderLists();
+    $(".mode-pill").innerHTML = '<i></i> Notion 公开数据';
+    $(".sidebar-bottom").innerHTML = '<span class="status-dot"></span> 数据已连接 <small>Notion · 只读同步</small>';
+    const generated = payload.generatedAt ? new Date(payload.generatedAt) : null;
+    if (generated && !Number.isNaN(generated.getTime())) {
+      $("#today-label").textContent += " · 数据更新 " + generated.toLocaleString("zh-CN");
+    }
+  } catch (error) {
+    $(".mode-pill").textContent = "数据暂不可用";
+    $(".sidebar-bottom").innerHTML = '<span class="status-dot"></span> 数据连接异常 <small>请稍后重试</small>';
+    $("#featured-list").innerHTML = '<div class="panel">暂时无法读取 Notion 数据。请稍后刷新。</div>';
+    $("#inbox-list").innerHTML = '<div class="panel">数据接口暂不可用。</div>';
+    console.error(error);
+    toast("数据读取失败：" + error.message);
+  } finally {
+    refresh.disabled = false;
+  }
+}
+
+document.addEventListener("click", event => {
+  const nav = event.target.closest("[data-view]");
+  if (nav) showView(nav.dataset.view);
+  const go = event.target.closest("[data-goto]");
+  if (go) showView(go.dataset.goto);
+  const card = event.target.closest(".intel-card");
+  if (card) openDetail(card.dataset.id);
+});
+$("#close-modal").addEventListener("click", closeDetail);
+$("#detail-modal").addEventListener("click", event => {
+  if (event.target.id === "detail-modal") closeDetail();
+});
+$("#status-filter").addEventListener("change", renderInbox);
+$("#refresh-btn").addEventListener("click", loadIntel);
+$("#today-label").textContent = new Intl.DateTimeFormat("zh-CN", {
+  year:"numeric", month:"long", day:"numeric", weekday:"long"
+}).format(new Date());
+loadIntel();
