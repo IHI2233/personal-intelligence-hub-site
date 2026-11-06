@@ -77,14 +77,62 @@ def category_for(item):
         return "04"
     return "01"
 
-def rt(text):
-    return [{"type": "text", "text": {"content": str(text)}}]
+def rich_text(value, link=None):
+    value = str(value or "")
+    chunks = [value[i:i + 1800] for i in range(0, len(value), 1800)] or [""]
+    result = []
+    for chunk in chunks:
+        item = {"type": "text", "text": {"content": chunk}}
+        if link:
+            item["text"]["link"] = {"url": link}
+        result.append(item)
+    return result
+
+def paragraph(value):
+    return {"object": "block", "type": "paragraph", "paragraph": {"rich_text": rich_text(value)}}
+
+def heading(value):
+    return {"object": "block", "type": "heading_2", "heading_2": {"rich_text": rich_text(value)}}
+
+def bullet(value):
+    return {"object": "block", "type": "bulleted_list_item", "bulleted_list_item": {"rich_text": rich_text(value)}}
+
+def build_blocks(item, run_id):
+    now = datetime.now(timezone.utc).isoformat()
+    summary = str(item.get("summary") or "").strip()
+    evidence = str(item.get("evidence") or "").strip()
+    next_step = str(item.get("next") or "暂未提供后续验证动作。").strip()
+    source_id = str(item.get("id") or "")
+    source_url = str(item.get("sourceUrl") or "")
+    source_notion_url = str(item.get("notionUrl") or "")
+    blocks = [
+        heading("一句话结论"),
+        paragraph(summary),
+        heading("来源事实与证据"),
+        paragraph(evidence),
+        heading("事实、推断与未知边界"),
+        bullet("来源记录验证状态：已验证；来源等级：S1 一手来源。此标签沿用收件箱字段，不代表本系统重新进行了独立实验或第三方审计。"),
+        bullet("本卡片只整理收件箱中已记录的来源摘要和证据，不新增未经来源支持的推断。"),
+        bullet("未知与限制：以来源证据中明确记录的限制为准；未记录的信息不作补充猜测。"),
+        heading("适用条件与后续验证"),
+        paragraph(next_step),
+        heading("来源与追溯"),
+        paragraph(f"情报记录 ID：{source_id}"),
+        paragraph(f"原始来源：{source_url}"),
+    ]
+    if source_notion_url:
+        blocks.append(paragraph(f"原始情报记录：{source_notion_url}"))
+    blocks.extend([
+        paragraph(f"沉淀时间（UTC）：{now}"),
+        paragraph("处理版本：knowledge-writer-v1"),
+        paragraph(f"GitHub Actions 运行 ID：{run_id}"),
+        paragraph("生成方式：确定性模板；未调用模型 API；未生成个人观点。"),
+    ])
+    return blocks
 
 def block_title(block):
-    kind = block.get("type")
-    data = block.get(kind, {}) if kind else {}
-    if kind == "child_page":
-        return data.get("title", "")
+    if block.get("type") == "child_page":
+        return block.get("child_page", {}).get("title", "")
     return ""
 
 def get_existing_titles():
@@ -105,36 +153,6 @@ def get_existing_titles():
             if not cursor:
                 break
     return titles
-
-def build_card(item, run_id):
-    title = str(item.get("title") or "未命名情报").strip()
-    source_id = str(item.get("id") or "")
-    source_url = str(item.get("sourceUrl") or "")
-    source_notion_url = str(item.get("notionUrl") or "")
-    now = datetime.now(timezone.utc).isoformat()
-    summary = str(item.get("summary") or "").strip()
-    evidence = str(item.get("evidence") or "").strip()
-    next_step = str(item.get("next") or "暂未提供后续验证动作。").strip()
-    return (
-        "## 一句话结论\n\n"
-        + summary
-        + "\n\n## 来源事实与证据\n\n"
-        + evidence
-        + "\n\n## 事实、推断与未知边界\n\n"
-        + "- 来源记录验证状态：已验证；来源等级：S1 一手来源。此标签沿用收件箱字段，不代表本系统重新进行了独立实验或第三方审计。\n"
-        + "- 本卡片只整理收件箱中已记录的来源摘要和证据，不新增未经来源支持的推断。\n"
-        + "- 未知与限制：以来源证据中明确记录的限制为准；未记录的信息不作补充猜测。\n\n"
-        + "## 适用条件与后续验证\n\n"
-        + next_step
-        + "\n\n## 来源与追溯\n\n"
-        + f"- 原始来源：[打开原始来源]({source_url})\n"
-        + (f"- 情报收件箱：[打开原始情报记录]({source_notion_url})\n" if source_notion_url else "")
-        + f"- 情报记录 ID：{source_id}\n"
-        + f"- 沉淀时间（UTC）：{now}\n"
-        + "- 处理版本：knowledge-writer-v1\n"
-        + f"- GitHub Actions 运行 ID：{run_id}\n"
-        + "- 生成方式：确定性模板；未调用模型 API；未生成个人观点。\n"
-    )
 
 def main():
     if not INPUT.exists():
@@ -160,26 +178,13 @@ def main():
         parent_id = CATEGORIES[category_for(item)]
         result = api("POST", "/pages", {
             "parent": {"type": "page_id", "page_id": parent_id},
-            "properties": {"title": {"title": rt(title)}},
-            "children": [{
-                "object": "block",
-                "type": "paragraph",
-                "paragraph": {"rich_text": rt("自动沉淀卡片；确定性模板；无模型调用。")},
-            }],
-        })
-        page_id = result["id"]
-        content = build_card(item, run_id)
-        api("PATCH", f"/blocks/{page_id}/children", {
-            "children": [{
-                "object": "block",
-                "type": "paragraph",
-                "paragraph": {"rich_text": rt(content[:1900])},
-            }]
+            "properties": {"title": {"title": rich_text(title)}},
+            "children": build_blocks(item, run_id),
         })
         created.append({
             "sourceId": source_id,
             "title": title,
-            "pageId": page_id,
+            "pageId": result["id"],
             "category": category_for(item),
         })
         existing_titles.add(title)
