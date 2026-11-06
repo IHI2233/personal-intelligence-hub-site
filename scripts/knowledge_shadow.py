@@ -28,7 +28,8 @@ def eligibility_reasons(item):
     source_url = canonical_url(item.get("sourceUrl"))
     if verification not in {"已验证", "完全验证", "verified"}:
         reasons.append("验证状态未达到已验证")
-    if source_level not in {"s1", "一级", "一手来源", "官方来源"}:
+    first_party = source_level == "s1" or source_level.startswith("s1 ") or source_level in {"一级", "一手来源", "官方来源"}
+    if not first_party:
         reasons.append("来源等级不是S1一手来源")
     if len(summary) < 80:
         reasons.append("核心摘要不足80字符")
@@ -54,7 +55,7 @@ def main():
     blocked = []
     for item in items:
         key_url = canonical_url(item.get("sourceUrl"))
-        key = (key_url, norm(item.get("title")))
+        key = (key_url, norm(item.get("title"))) if key_url else ("source_id", str(item.get("id") or ""))
         if key in seen:
             duplicates.append(item.get("id", ""))
             continue
