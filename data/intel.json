@@ -1,0 +1,62 @@
+{
+  "source": "Notion 情报收件箱",
+  "dataSourceId": "f12e3184-4a3a-49ce-a62c-a5367b0e574f",
+  "generatedAt": "2026-11-06T00:00:00Z",
+  "count": 3,
+  "items": [
+    {
+      "id": "4102a473-4547-818d-8259-ddb1a44ce77a",
+      "title": "OpenAI API：GPT-6-Cyber功能更新（2026-11-05）",
+      "date": "2026-11-05",
+      "topic": "AI模型能力；网络安全；Agent工具；授权安全测试",
+      "field": "计算机科学与人工智能",
+      "type": "模型/产品更新",
+      "status": "待人工审核",
+      "verification": "部分验证",
+      "sourceLevel": "S1 一手来源",
+      "credibility": null,
+      "score": null,
+      "summary": "OpenAI API官方变更日志于2026-11-05列出GPT-6-Cyber，用于在授权测试环境中调查漏洞、复现漏洞并验证修复。官方模型页面进一步确认：需要组织具备Daybreak Red访问资格，并且GPT-6-Cyber需单独审批。",
+      "evidence": "已核对官方变更日志、GPT-6-Cyber模型页、Daybreak访问说明和价格页。功能定位仅限授权安全测试。组织需要Daybreak Red资格，GPT-6-Cyber还需单独审批；尚未核实用户自身组织是否具备资格，因此不可视为当前可用能力。",
+      "next": "若未来有合规组织访问需求，先确认组织资格、GPT-6-Cyber单独审批、项目安全设置和实际价格；当前不将其纳入个人可用工具清单。",
+      "sourceUrl": "https://developers.openai.com/api/docs/changelog",
+      "notionUrl": "https://www.notion.so/4102a4734547818d8259ddb1a44ce77a"
+    },
+    {
+      "id": "4102a473-4547-81a6-a39a-d17d95851b38",
+      "title": "HCI研究：The Reflection Penalty（2026-10-15）",
+      "date": "2026-10-15",
+      "topic": "人机信任；AI教练；主体性；自动化接受度；人机协作",
+      "field": "心理学、认知科学与人机交互",
+      "type": "论文/研究",
+      "status": "待人工审核",
+      "verification": "部分验证",
+      "sourceLevel": "S1 一手来源",
+      "credibility": null,
+      "score": null,
+      "summary": "期刊论文研究8名管理者分别接受人类教练和文本AI教练的相同反思提问协议。样本来自一家全球咨询公司，研究结果不应直接外推到所有AI辅导或人机协作情境。",
+      "evidence": "已核对期刊文章摘要、作者、DOI和在线发表日期。样本为8名管理者，来自单一组织；完整方法、访谈编码和研究局限仍需进一步核对。",
+      "next": "如需用于人机协作设计，读取全文及附录，核查访谈方法、观察任务、分析过程和作者列出的限制。",
+      "sourceUrl": "https://doi.org/10.1080/07370024.2026.2744236",
+      "notionUrl": "https://www.notion.so/4102a473454781a6a39ad17d95851b38"
+    },
+    {
+      "id": "4102a473-4547-81c9-99a1-d83b337ccdfa",
+      "title": "15 kV碳化硅IGBT器件演示：电力电子高压器件进展（2026-10-21）",
+      "date": "2026-10-21",
+      "topic": "电力电子；SiC功率器件；IGBT；高压直流输电；AI数据中心供电",
+      "field": "电子、电气与自动化工程",
+      "type": "论文/研究",
+      "status": "待人工审核",
+      "verification": "部分验证",
+      "sourceLevel": "S1 一手来源",
+      "credibility": null,
+      "score": null,
+      "summary": "University at Albany于2026-10-21发布消息称，其团队设计、制造并演示了一种15 kV SiC IGBT。目前尚未定位到与该次演示直接对应的原始论文或完整测试报告。",
+      "evidence": "已核对大学官方新闻稿全文。新闻稿明确区分本次15 kV SiC IGBT与团队2021年此前演示的15 kV SiC MOSFET；仍缺本次演示对应的论文/技术报告、器件特性和测试条件。",
+      "next": "继续向研究团队、实验室或会议论文库追查2026年演示对应的原始论文或技术报告；未找到前保持部分验证。",
+      "sourceUrl": "https://www.albany.edu/news-center/news/2026-ualbany-led-research-team-achieves-rare-milestone-ultra-high-voltage-power",
+      "notionUrl": "https://www.notion.so/4102a473454781c999a1d83b337ccdfa"
+    }
+  ]
+}
