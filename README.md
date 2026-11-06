@@ -1,35 +1,59 @@
 # Personal Intelligence Hub
 
-个人智能情报中控台的独立网页前端原型（Demo V0.1）。
+个人智能情报中控台。当前版本通过公开 JSON 数据文件展示 Notion「情报收件箱」中的真实情报记录。
 
-## 在线演示
-部署成功后访问： https://ihi2233.github.io/personal-intelligence-hub-site/
+## 当前能力
 
-## 当前包含
-- 响应式仪表盘与指标概览
-- 情报收件箱及状态筛选
-- 情报详情：已确认信息、待核验信息、下一步建议
-- 关注主题、信息源分层与处理流水线视图
-- 演示数据交互与移动端布局
+- 响应式仪表盘与情报收件箱
+- 情报详情、验证状态、证据说明、后续动作
+- 原始来源与 Notion 记录链接
+- GitHub Actions 定时/手动同步 Notion 数据
+- 前端只读取公开 JSON，不持有 Notion Token
+
+## 数据链路
+
+Notion 情报收件箱 → GitHub Actions → `data/intel.json` → GitHub Pages
+
+同步脚本：`scripts/sync_notion.py`  
+工作流：`.github/workflows/sync-notion.yml`
+
+## 启用自动同步
+
+1. 在 Notion 中创建一个 Internal Integration，并授予读取内容权限。
+2. 在 Notion「情报收件箱」数据库中，将该 Integration 添加为连接，确保它能读取对应数据源。
+3. 在 GitHub 仓库 Settings → Secrets and variables → Actions → New repository secret 中创建：
+   - Name: `NOTION_TOKEN`
+   - Secret: Notion Integration 的 Internal Integration Secret
+4. 在 GitHub 仓库 Actions 中运行 `Sync public Notion intelligence data`，选择 Run workflow。
+5. 检查工作流成功后，确认 `data/intel.json` 已更新，随后等待 GitHub Pages 部署完成。
+
+当前数据源 ID 在工作流中配置为公开标识；它不是密钥。Notion Token 只能保存在 GitHub Actions Secret 中，严禁写入网页代码、JSON 数据文件或仓库普通文件。
+
+## 公开数据边界
+
+本网站是公开网页。同步脚本会把 Notion 情报收件箱中的以下字段公开发布：
+
+- 标题、发布日期、领域、主题、信息类型
+- 处理状态、验证状态、来源等级
+- 可信度、综合评分
+- 核心摘要、证据与适用条件、后续动作
+- 原始来源链接及 Notion 记录链接
+
+不要将密码、API Key、个人隐私、客户机密或其他不适合公开的内容写入该数据源。网页当前为只读展示，不会修改 Notion。
+
+## 运行频率
+
+- GitHub Actions 每天 02:17 UTC 自动同步一次。
+- 也可以在 Actions 页面手动运行。
+- 同步成功后，更新后的 JSON 文件会提交到默认分支；GitHub Pages 按仓库当前发布设置更新网站。
 
 ## 本地运行
-无需安装依赖。下载仓库后，直接用浏览器打开 `index.html` 即可。
 
-## 当前边界
-这是静态前端原型，不是已上线的完整情报系统。当前尚未实现：
-- Notion 实时读写或数据库同步
-- RSS/API 自动采集与定时调度
-- LLM/API 调用及结构化核验
-- 用户身份认证、服务端审计日志
-- 真实运行指标、自动提醒与后台任务
+无需安装依赖。直接用浏览器打开 `index.html`。由于浏览器本地文件协议可能限制 fetch，请使用本地静态 HTTP 服务预览。
 
-情报条目和仪表盘数字均为演示数据，不代表实时采集结果。详情中的“保留并沉淀 / 继续核验 / 忽略”仅显示提示，不会修改远端数据。
+## 安全原则
 
-## 项目原则
-- 本仓库与 `jarvis-personal-ai` 完全独立。
-- 不包含 API Key、访问令牌或用户隐私数据。
-- 下一阶段应先实现只读数据接入与人工审核，再逐步开放写入操作。
-- 所有外部副作用操作应有明确授权与可审计记录。
-
-## 技术
-原生 HTML、CSS、JavaScript；无构建工具、无第三方运行时依赖。
+- Notion Token 仅存储在 GitHub Actions Secret。
+- 网页仅读取公开 JSON。
+- 不开放前端写入 Notion。
+- 公开数据需遵守上述字段与内容边界。
