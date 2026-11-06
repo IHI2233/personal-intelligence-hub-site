@@ -21,9 +21,14 @@ const statusClass = value => {
 };
 
 const statusLabel = item => item.verification || item.status || "状态未知";
+const knowledgeClass = value => ({
+  "已沉淀":"verified", "证据不足":"partial", "存在争议":"pending",
+  "重复":"pending", "不适用":"pending", "写入失败":"pending", "待评估":"pending"
+}[value] || "pending");
 
 const listMarkup = item => {
   const source = safeHref(item.sourceUrl);
+  const knowledge = safeHref(item.knowledgeUrl);
   return `<article class="intel-card" data-id="${escapeHtml(item.id)}">
     <div class="intel-icon">${escapeHtml((item.field || item.type || "情报").slice(0, 2))}</div>
     <div class="intel-body">
@@ -34,7 +39,9 @@ const listMarkup = item => {
         <span>${escapeHtml(item.date || "日期未记录")}</span>
         <span class="tag ${statusClass(statusLabel(item))}">${escapeHtml(statusLabel(item))}</span>
         <span>${escapeHtml(item.sourceLevel || "来源等级未知")}</span>
+        <span class="tag ${knowledgeClass(item.knowledgeStatus)}">知识：${escapeHtml(item.knowledgeStatus || "待评估")}</span>
         ${source ? `<a href="${escapeHtml(source)}" target="_blank" rel="noopener noreferrer">原始来源</a>` : ""}
+        ${knowledge ? `<a href="${escapeHtml(knowledge)}" target="_blank" rel="noopener noreferrer">知识卡片</a>` : ""}
       </div>
     </div><span class="intel-arrow">›</span>
   </article>`;
@@ -51,8 +58,19 @@ function renderLists() {
   const metrics = document.querySelectorAll(".metric-card strong");
   if (metrics[0]) metrics[0].textContent = String(pending).padStart(2, "0");
   if (metrics[1]) metrics[1].textContent = "03";
-  if (metrics[2]) metrics[2].textContent = String(intel.filter(item => item.status === "已归档").length).padStart(2, "0");
+  if (metrics[2]) metrics[2].textContent = String(intel.filter(item => item.knowledgeStatus === "已沉淀").length).padStart(2, "0");
   if (metrics[3]) metrics[3].textContent = "29";
+  renderKnowledgeSummary();
+}
+
+function renderKnowledgeSummary() {
+  const target = $("#knowledge-summary");
+  if (!target) return;
+  const statuses = [["已沉淀", "verified"], ["证据不足", "partial"], ["存在争议", "pending"], ["待评估", "pending"]];
+  target.innerHTML = statuses.map(([label, klass]) => {
+    const count = intel.filter(item => (item.knowledgeStatus || "待评估") === label).length;
+    return '<article class="knowledge-stat"><span class="tag ' + klass + '">' + label + '</span><strong>' + String(count).padStart(2, "0") + '</strong><small>条情报</small></article>';
+  }).join("");
 }
 
 function renderInbox() {
@@ -67,16 +85,19 @@ function openDetail(id) {
   if (!item) return;
   const source = safeHref(item.sourceUrl);
   const notion = safeHref(item.notionUrl);
+  const knowledge = safeHref(item.knowledgeUrl);
   $("#modal-content").innerHTML = `
     <span class="tag ${statusClass(statusLabel(item))}">${escapeHtml(statusLabel(item))}</span>
     <h2>${escapeHtml(item.title)}</h2>
     <div class="intel-meta">${escapeHtml(item.topic || item.field)} · ${escapeHtml(item.date)}</div>
     <h4>核心摘要</h4><p>${escapeHtml(item.summary || "暂无摘要")}</p>
     <h4>证据与适用条件</h4><p>${escapeHtml(item.evidence || "暂无补充证据说明")}</p>
+    <h4>知识沉淀状态</h4><p><span class="tag ${knowledgeClass(item.knowledgeStatus)}">${escapeHtml(item.knowledgeStatus || "待评估")}</span> · ${escapeHtml(item.knowledgeVersion || "尚无处理版本")}</p>
     <h4>后续动作</h4><p>${escapeHtml(item.next || "暂无后续动作")}</p>
     <div class="modal-actions">
       ${source ? `<a class="action-btn primary" href="${escapeHtml(source)}" target="_blank" rel="noopener noreferrer">查看原始来源</a>` : ""}
       ${notion ? `<a class="action-btn" href="${escapeHtml(notion)}" target="_blank" rel="noopener noreferrer">打开 Notion 记录</a>` : ""}
+      ${knowledge ? `<a class="action-btn" href="${escapeHtml(knowledge)}" target="_blank" rel="noopener noreferrer">打开知识卡片</a>` : ""}
     </div>
     <p class="disclaimer">公开只读视图 · 数据来自 Notion 情报收件箱。</p>`;
   $("#detail-modal").classList.add("open");
