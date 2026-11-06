@@ -47,7 +47,40 @@ const listMarkup = item => {
   </article>`;
 };
 
-function renderLists() {
+
+async function loadTasks() {
+  const target = $("#task-list");
+  if (!target) return;
+  try {
+    const response = await fetch("data/tasks.json?ts=" + Date.now(), {cache:"no-store"});
+    if (response.status === 404) { target.innerHTML = '<p class="muted">暂无 URL 处理任务。</p>'; return; }
+    if (!response.ok) throw new Error("任务状态读取失败");
+    const payload = await response.json();
+    const items = Array.isArray(payload.items) ? payload.items : [];
+    target.innerHTML = items.slice(0,8).map(task => {
+      const status = task.status === "awaiting_review" ? "待人工审核" : task.status === "failed" ? "处理失败" : task.status === "fetching" ? "采集中" : task.status === "writing" ? "写入中" : "处理中";
+      const link = safeHref(task.notionUrl);
+      const issue = safeHref(task.issueUrl);
+      return '<article class="task-row"><div><b>' + escapeHtml(task.pageTitle || task.title || ("任务 #" + task.issueNumber)) + '</b><small>' + escapeHtml(task.domain || task.stage || "") + ' · ' + escapeHtml(task.completedAt || task.createdAt || "") + '</small></div><span class="tag ' + (task.status === "awaiting_review" ? "partial" : task.status === "failed" ? "pending" : "verified") + '">' + status + '</span><div class="task-links">' + (link ? '<a href="' + escapeHtml(link) + '" target="_blank" rel="noopener noreferrer">Notion 草稿</a>' : '') + (issue ? '<a href="' + escapeHtml(issue) + '" target="_blank" rel="noopener noreferrer">任务记录</a>' : '') + '</div></article>';
+    }).join("") || '<p class="muted">暂无 URL 处理任务。</p>';
+  } catch (error) {
+    target.innerHTML = '<p class="muted">任务状态暂不可用，请稍后刷新。</p>';
+  }
+}
+
+function submitArticleUrl() {
+  const input = $("#article-url");
+  const raw = (input?.value || "").trim();
+  let parsed;
+  try { parsed = new URL(raw); } catch { toast("请输入有效的网页 URL"); return; }
+  if (parsed.protocol !== "https:" || !parsed.hostname) { toast("目前只接受公开 HTTPS 网页"); return; }
+  const title = "[URL] " + parsed.hostname + " article intake";
+  const body = "Source URL: " + raw + "\n\n由个人智能情报中枢网页控制台提交。\n请勿在此任务中放入私有资料或凭据。";
+  const issueUrl = "https://github.com/IHI2233/personal-intelligence-hub-site/issues/new?" + new URLSearchParams({title, body}).toString();
+  window.open(issueUrl, "_blank", "noopener");
+  toast("已打开 GitHub 任务创建页；请确认并提交 Issue 以启动处理。");
+}
+\nfunction renderLists() {
   $("#featured-list").innerHTML = intel.slice(0, 3).map(listMarkup).join("") ||
     '<div class="panel">暂无公开情报记录。</div>';
   renderInbox();
@@ -166,7 +199,7 @@ $("#detail-modal").addEventListener("click", event => {
   if (event.target.id === "detail-modal") closeDetail();
 });
 $("#status-filter").addEventListener("change", renderInbox);
-$("#refresh-btn").addEventListener("click", loadIntel);
+$("#refresh-btn").addEventListener("click", () => { loadIntel();\nloadTasks(); loadTasks(); });\n$("#submit-url-btn")?.addEventListener("click", submitArticleUrl);
 $("#today-label").textContent = new Intl.DateTimeFormat("zh-CN", {
   year:"numeric", month:"long", day:"numeric", weekday:"long"
 }).format(new Date());
