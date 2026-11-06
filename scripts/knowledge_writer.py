@@ -136,7 +136,7 @@ def block_title(block):
     return ""
 
 def get_existing_titles():
-    titles = set()
+    titles = {}
     for parent_id in CATEGORIES.values():
         cursor = None
         while True:
@@ -146,13 +146,27 @@ def get_existing_titles():
             result = api("GET", path)
             for block in result.get("results", []):
                 if block.get("type") == "child_page":
-                    titles.add(block_title(block))
+                    titles[block_title(block)] = block.get("id")
             if not result.get("has_more"):
                 break
             cursor = result.get("next_cursor")
             if not cursor:
                 break
     return titles
+
+def update_source_record(item, status, page_id=None):
+    source_id = str(item.get("id") or "")
+    if not source_id:
+        raise RuntimeError("Source record is missing its Notion page ID.")
+    page_url = f"https://www.notion.so/{page_id.replace('-', '')}" if page_id else None
+    processed_date = datetime.now(timezone.utc).date().isoformat()
+    properties = {
+        "知识沉淀状态": {"select": {"name": status}},
+        "知识页面链接": {"url": page_url},
+        "知识处理时间": {"date": {"start": processed_date}},
+        "知识沉淀版本": {"rich_text": [{"type": "text", "text": {"content": "knowledge-writer-v1"}}]},
+    }
+    api("PATCH", f"/pages/{source_id}", {"properties": properties})
 
 def main():
     if not INPUT.exists():
@@ -166,28 +180,50 @@ def main():
 
     run_id = os.environ.get("GITHUB_RUN_ID", "manual")
     eligible_items = [item for item in items if eligible(item)]
-    existing_titles = get_existing_titles() if eligible_items else set()
-    created, skipped = [], []
+    existing_titles = get_existing_titles() if eligible_items else {}
+    created, reused, blocked = [], [], []
+    status_updates = 0
 
-    for item in eligible_items:
+    for item in items:
         source_id = str(item.get("id") or "")
         title = f"知识卡片｜{str(item.get('title') or '未命名情报').strip()} · {source_id[:8]}"
-        if title in existing_titles:
-            skipped.append({"sourceId": source_id, "reason": "existing_title_idempotency_guard"})
+        if not eligible(item):
+            current_status = norm(item.get("knowledgeStatus"))
+            if current_status == "已沉淀" and item.get("knowledgeUrl"):
+                blocked.append({"sourceId": source_id, "status": "preserved_existing_knowledge_link"})
+                continue
+            verification = norm(item.get("verification"))
+            if verification == "存在争议":
+                state = "存在争议"
+            elif verification in {"已证伪/不适用", "不适用"}:
+                state = "不适用"
+            else:
+                state = "证据不足"
+            update_source_record(item, state)
+            status_updates += 1
+            blocked.append({"sourceId": source_id, "status": state})
             continue
-        parent_id = CATEGORIES[category_for(item)]
-        result = api("POST", "/pages", {
-            "parent": {"type": "page_id", "page_id": parent_id},
-            "properties": {"title": {"title": rich_text(title)}},
-            "children": build_blocks(item, run_id),
-        })
-        created.append({
-            "sourceId": source_id,
-            "title": title,
-            "pageId": result["id"],
-            "category": category_for(item),
-        })
-        existing_titles.add(title)
+
+        if title in existing_titles:
+            page_id = existing_titles[title]
+            reused.append({"sourceId": source_id, "pageId": page_id, "reason": "idempotent_existing_card"})
+        else:
+            parent_id = CATEGORIES[category_for(item)]
+            result = api("POST", "/pages", {
+                "parent": {"type": "page_id", "page_id": parent_id},
+                "properties": {"title": {"title": rich_text(title)}},
+                "children": build_blocks(item, run_id),
+            })
+            page_id = result["id"]
+            existing_titles[title] = page_id
+            created.append({
+                "sourceId": source_id,
+                "title": title,
+                "pageId": page_id,
+                "category": category_for(item),
+            })
+        update_source_record(item, "已沉淀", page_id)
+        status_updates += 1
 
     report = {
         "mode": "deterministic_auto_capture",
@@ -195,9 +231,12 @@ def main():
         "inputCount": len(items),
         "eligibleCount": len(eligible_items),
         "createdCount": len(created),
-        "skippedDuplicateCount": len(skipped),
+        "reusedExistingCount": len(reused),
+        "blockedCount": len(blocked),
+        "sourceStatusUpdates": status_updates,
         "created": created,
-        "skipped": skipped,
+        "reused": reused,
+        "blocked": blocked,
     }
     print("KNOWLEDGE_WRITE_REPORT=" + json.dumps(report, ensure_ascii=False))
 
