@@ -1,3 +1,4 @@
+# Workflow triggers on data-pipeline changes; Notion edits are picked up by the scheduled or manual run.
 name: Sync public Notion intelligence data
 
 on:
