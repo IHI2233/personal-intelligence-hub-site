@@ -199,8 +199,10 @@ $("#detail-modal").addEventListener("click", event => {
   if (event.target.id === "detail-modal") closeDetail();
 });
 $("#status-filter").addEventListener("change", renderInbox);
-$("#refresh-btn").addEventListener("click", () => { loadIntel();\nloadTasks(); loadTasks(); });\n$("#submit-url-btn")?.addEventListener("click", submitArticleUrl);
+$("#refresh-btn").addEventListener("click", () => { loadIntel(); loadTasks(); });
+$("#submit-url-btn")?.addEventListener("click", submitArticleUrl);
 $("#today-label").textContent = new Intl.DateTimeFormat("zh-CN", {
   year:"numeric", month:"long", day:"numeric", weekday:"long"
 }).format(new Date());
 loadIntel();
+loadTasks();
