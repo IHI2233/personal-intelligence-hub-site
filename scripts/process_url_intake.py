@@ -54,7 +54,7 @@ class Extractor(HTMLParser):
         if self.in_title: self.title_parts.append(value)
         if self.skip: return
         if self.current_heading: self.headings.append(value)
-        if len(value) > 25: self.text_parts.append(value)
+        if len(value) >= 4: self.text_parts.append(value)
 
 def validate_url(url):
     p = urllib.parse.urlsplit(url.strip())
@@ -132,13 +132,16 @@ def create_notion_draft(title, source_url, domain, date, headings, excerpts, pag
     })
     return result["id"], result.get("url","")
 
+def read_tasks():
+    try:
+        with open(TASKS_PATH,encoding="utf-8") as f:
+            return json.load(f).get("items",[])
+    except (FileNotFoundError, json.JSONDecodeError):
+        return []
+
 def write_tasks(task):
     os.makedirs("data",exist_ok=True)
-    try:
-        old=json.load(open(TASKS_PATH,encoding="utf-8"))
-        items=old.get("items",[])
-    except (FileNotFoundError, json.JSONDecodeError):
-        items=[]
+    items=read_tasks()
     items=[x for x in items if x.get("issueNumber") != task["issueNumber"]]
     items.insert(0,task)
     payload={"generatedAt":datetime.now(timezone.utc).isoformat(),"count":len(items[:30]),"items":items[:30]}
@@ -158,6 +161,7 @@ def main():
     match=re.search(r"(?im)^\s*(?:source\s*url|url)\s*:\s*(https://\S+)\s*$",body)
     if not match: raise ValueError("Issue 正文必须包含单独一行 Source URL: https://...")
     url=match.group(1).rstrip(").,;")
+    previous=next((x for x in read_tasks() if x.get("issueNumber")==number),{})
     task={"issueNumber":number,"title":issue.get("title","URL采集任务"),"status":"fetching","stage":"采集网页","createdAt":issue.get("created_at"),"issueUrl":issue.get("html_url"),"domain":"","pageTitle":"","notionUrl":"","error":""}
     write_tasks(task)
     try:
@@ -167,12 +171,15 @@ def main():
         desc=parser.meta.get("description") or parser.meta.get("og:description") or ""
         date=parser.meta.get("article:published_time") or parser.meta.get("date") or parser.meta.get("pubdate") or ""
         text=" ".join(parser.text_parts)
-        if len(text)<120: raise ValueError("正文提取内容过少，可能是 JS 渲染页、登录墙或非文章页面。")
+        if len(text)<80: raise ValueError("正文提取内容过少，可能是 JS 渲染页、登录墙或非文章页面。")
         path=urllib.parse.urlsplit(final_url)
         page_type="独立文章" if len(parser.headings)>=2 and len(text)>1000 else "普通网页/栏目页（待人工确认）"
         task.update({"status":"writing","stage":"写入 Notion 草稿","domain":path.hostname,"pageTitle":title})
         write_tasks(task)
-        page_id, notion_url=create_notion_draft(title,final_url,path.hostname,date,parser.headings,[desc]+parser.text_parts[:8],page_type)
+        if previous.get("pageId") and previous.get("notionUrl"):
+            page_id, notion_url=previous["pageId"], previous["notionUrl"]
+        else:
+            page_id, notion_url=create_notion_draft(title,final_url,path.hostname,date,parser.headings,[desc]+parser.text_parts[:8],page_type)
         task.update({"status":"awaiting_review","stage":"已生成 Notion 草稿","notionUrl":notion_url,"pageId":page_id,"completedAt":datetime.now(timezone.utc).isoformat(),"note":"自动采集与结构提取完成；语义分析和事实核验待人工完成。"})
         write_tasks(task)
         comment_issue(number,f"## URL 采集完成\n\n- 页面：**{title}**\n- 类型初判：{page_type}\n- 正文提取：{len(text)} 字符\n- Notion 草稿：[打开页面]({notion_url})\n\n状态：**待人工分析与审核**。本次未调用模型 API；尚未完成语义总结和事实核验。")
