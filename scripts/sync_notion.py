@@ -98,6 +98,10 @@ def main():
                 "summary": text_prop(p, "核心摘要"),
                 "evidence": text_prop(p, "证据与适用条件"),
                 "next": text_prop(p, "后续动作"),
+                "knowledgeStatus": select_prop(p, "知识沉淀状态"),
+                "knowledgeUrl": url_prop(p, "知识页面链接"),
+                "knowledgeProcessedAt": date_prop(p, "知识处理时间"),
+                "knowledgeVersion": text_prop(p, "知识沉淀版本"),
                 "sourceUrl": source_url,
                 "notionUrl": f"https://www.notion.so/{page.get('id', '').replace('-', '')}",
             })
