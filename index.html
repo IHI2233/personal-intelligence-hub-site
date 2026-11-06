@@ -25,6 +25,12 @@
       <header class="topbar"><div><span class="eyebrow">PERSONAL INTELLIGENCE HUB</span><h1 id="page-title">总览仪表盘</h1></div><div class="top-actions"><span class="mode-pill"><i></i> 正在读取数据</span><button class="icon-button" id="refresh-btn" title="刷新演示视图">↻</button></div></header>
       <section id="view-overview" class="view active">
         <div class="welcome"><div><p class="eyebrow light">DAILY BRIEFING</p><h2>让重要信息主动浮现。</h2><p>发现变化、核验事实，并将信息转化为知识与行动。</p></div><div class="welcome-date" id="today-label"></div></div>
+      <section class="panel url-intake-panel">
+        <div class="panel-heading"><div><h3>提交网页，生成知识草稿</h3><p>输入公开网页 URL，服务端采集后写入 Notion 待审核区</p></div><span class="tag partial">自动采集</span></div>
+        <div class="url-intake-form"><input id="article-url" type="url" placeholder="https://example.com/article" autocomplete="url" inputmode="url"><button id="submit-url-btn" class="action-btn primary" type="button">提交 URL →</button></div>
+        <p class="intake-notice">注意：此项目仓库与 GitHub Issues 为公开状态。提交的 URL 和任务标题会公开显示；请勿提交私有文档、含访问令牌的链接或敏感资料。提交后由 GitHub Actions 处理，结果先进入 Notion 待审核草稿。</p>
+        <div id="task-list" class="task-list"><p class="muted">正在读取处理任务…</p></div>
+      </section>
         <div class="metrics">
           <article class="metric-card"><span>待审核情报</span><strong>03</strong><small>需要人工判断</small></article>
           <article class="metric-card"><span>活跃关注主题</span><strong>03</strong><small>AI · 电力电子 · HCI</small></article>
