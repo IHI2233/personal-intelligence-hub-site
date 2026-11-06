@@ -48,12 +48,13 @@ def norm(value):
 def eligible(item):
     verification = norm(item.get("verification"))
     source_level = norm(item.get("sourceLevel"))
+    first_party = source_level == "s1" or source_level.startswith("s1 ") or source_level in {"一级", "一手来源", "官方来源"}
     summary = norm(item.get("summary"))
     evidence = norm(item.get("evidence"))
     url = str(item.get("sourceUrl") or "")
     return (
         verification in {"已验证", "完全验证", "verified"}
-        and source_level in {"s1", "一级", "一手来源", "官方来源"}
+        and first_party
         and len(summary) >= 80
         and len(evidence) >= 40
         and url.startswith(("https://", "http://"))
@@ -189,8 +190,8 @@ def main():
         title = f"知识卡片｜{str(item.get('title') or '未命名情报').strip()} · {source_id[:8]}"
         if not eligible(item):
             current_status = norm(item.get("knowledgeStatus"))
-            if current_status == "已沉淀" and item.get("knowledgeUrl"):
-                blocked.append({"sourceId": source_id, "status": "preserved_existing_knowledge_link"})
+            if current_status == "已沉淀":
+                blocked.append({"sourceId": source_id, "status": "preserved_existing_knowledge_status"})
                 continue
             verification = norm(item.get("verification"))
             if verification == "存在争议":
