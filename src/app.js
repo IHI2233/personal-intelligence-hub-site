@@ -80,7 +80,8 @@ function submitArticleUrl() {
   window.open(issueUrl, "_blank", "noopener");
   toast("已打开 GitHub 任务创建页；请确认并提交 Issue 以启动处理。");
 }
-\nfunction renderLists() {
+
+function renderLists() {
   $("#featured-list").innerHTML = intel.slice(0, 3).map(listMarkup).join("") ||
     '<div class="panel">暂无公开情报记录。</div>';
   renderInbox();
