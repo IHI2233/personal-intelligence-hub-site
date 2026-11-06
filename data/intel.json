@@ -1,7 +1,7 @@
 {
   "source": "Notion 情报收件箱",
   "dataSourceId": "f12e3184-4a3a-49ce-a62c-a5367b0e574f",
-  "generatedAt": "2026-11-06T14:48:47.391807+00:00",
+  "generatedAt": "2026-11-06T14:49:00.580843+00:00",
   "count": 3,
   "items": [
     {
@@ -19,10 +19,10 @@
       "summary": "OpenAI API官方变更日志于2026-11-05列出GPT-6-Cyber，用于在授权测试环境中调查漏洞、复现漏洞并验证修复。官方模型页面进一步确认：需要组织具备Daybreak Red访问资格，并且GPT-6-Cyber需单独审批；标准短上下文价格为每百万输入Token 20美元、输出Token 100美元。",
       "evidence": "已核对官方变更日志、GPT-6-Cyber模型页、Daybreak访问说明和价格页。功能定位仅限授权安全测试。组织需要Daybreak Red资格，GPT-6-Cyber还需单独审批；个人不能直接申请Daybreak Red，只有少数例外访问情形。标准短上下文价格：输入$20/百万Token，输出$100/百万Token；工具调用可能另收费。尚未核实用户自身组织是否具备资格，因此不可视为当前可用能力。",
       "next": "若未来有合规组织访问需求，先确认组织资格、GPT-6-Cyber单独审批、项目安全设置和实际价格；当前不将其纳入个人可用工具清单。",
-      "knowledgeStatus": "",
+      "knowledgeStatus": "证据不足",
       "knowledgeUrl": null,
-      "knowledgeProcessedAt": "",
-      "knowledgeVersion": "",
+      "knowledgeProcessedAt": "2026-11-06",
+      "knowledgeVersion": "knowledge-writer-v1",
       "sourceUrl": "https://developers.openai.com/api/docs/changelog",
       "notionUrl": "https://www.notion.so/4102a4734547818d8259ddb1a44ce77a"
     },
@@ -41,10 +41,10 @@
       "summary": "University at Albany于2026-10-21发布消息称，其团队设计、制造并演示了一种15 kV SiC IGBT。新闻稿说明了参与制造与封装的机构，并提及潜在应用场景；目前尚未定位到与该次2026演示直接对应的原始论文或完整测试报告。",
       "evidence": "已核对大学官方新闻稿全文。新闻稿明确区分本次15 kV SiC IGBT与团队2021年此前演示的15 kV SiC MOSFET；新闻稿所链接的旧MOSFET工作不能作为本次IGBT的原始证据。检索发现一篇2009年关于15 kV 4H-SiC IGBT频率能力的早期会议论文，以及2014年关于15 kV SiC IGBT栅极驱动的论文，但均不能证明2026年本次器件的性能。仍缺本次演示对应的论文/技术报告、静态和动态特性、开关损耗、短路能力、封装热阻、可靠性和测试条件。",
       "next": "继续向研究团队/实验室/会议论文库追查2026年演示对应的原始论文或技术报告；未找到前保持部分验证，不把2009年设计论文或2021年MOSFET工作混作本次IGBT证据。",
-      "knowledgeStatus": "",
+      "knowledgeStatus": "证据不足",
       "knowledgeUrl": null,
-      "knowledgeProcessedAt": "",
-      "knowledgeVersion": "",
+      "knowledgeProcessedAt": "2026-11-06",
+      "knowledgeVersion": "knowledge-writer-v1",
       "sourceUrl": "https://www.albany.edu/news-center/news/2026-ualbany-led-research-team-achieves-rare-milestone-ultra-high-voltage-power",
       "notionUrl": "https://www.notion.so/4102a473454781c999a1d83b337ccdfa"
     },
@@ -63,10 +63,10 @@
       "summary": "期刊论文《The Reflection Penalty: when managers accept leadership coaching from a human but not an AI agent》，作者Tessa Forshaw、Jacob Hale和Mari Longmire，2026-10-15在线发表。摘要说明：在一家全球咨询公司的设计型研究第四周期中，8名管理者分别接受人类教练和文本AI教练的相同反思提问协议，并在观察到的入职活动中应用后接受访谈；8人都欢迎人类教练的追问并偏好人类教练，对AI教练使用同样提问协议则更希望直接获得答案。",
       "evidence": "已核对期刊文章摘要、作者、DOI和在线发表日期；期刊页面标注Open Access。摘要报告样本为8名管理者，来自一家未公开名称的全球咨询公司，研究属于设计型研究项目中的第四周期。当前尚未完整核对全文方法、访谈编码、测量和局限；小样本、特定组织与教练任务限制了外推范围。不能将“Reflection Penalty”直接解释为所有AI辅导或所有人机协作的普遍规律。",
       "next": "后续如需把研究用于人机协作设计，再读取全文及附录，重点核对访谈方法、观察任务、分析过程和作者列出的限制；当前将其作为有边界的研究线索。",
-      "knowledgeStatus": "",
+      "knowledgeStatus": "证据不足",
       "knowledgeUrl": null,
-      "knowledgeProcessedAt": "",
-      "knowledgeVersion": "",
+      "knowledgeProcessedAt": "2026-11-06",
+      "knowledgeVersion": "knowledge-writer-v1",
       "sourceUrl": "https://doi.org/10.1080/07370024.2026.2744236",
       "notionUrl": "https://www.notion.so/4102a473454781a6a39ad17d95851b38"
     }
