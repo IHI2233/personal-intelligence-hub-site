@@ -1,0 +1,43 @@
+name: Sync public Notion intelligence data
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 2 * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: notion-public-data-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Export Notion data
+        env:
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+          NOTION_DATA_SOURCE_ID: f12e3184-4a3a-49ce-a62c-a5367b0e574f
+        run: python scripts/sync_notion.py
+
+      - name: Publish refreshed JSON
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/intel.json
+          if git diff --cached --quiet; then
+            echo "No public data changes."
+            exit 0
+          fi
+          git commit -m "chore: sync public Notion intelligence data"
+          git push
