@@ -46,6 +46,12 @@ jobs:
           GITHUB_RUN_ID: ${{ github.run_id }}
         run: python scripts/knowledge_writer.py
 
+      - name: Refresh exported intelligence after knowledge writeback
+        env:
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+          NOTION_DATA_SOURCE_ID: f12e3184-4a3a-49ce-a62c-a5367b0e574f
+        run: python scripts/sync_notion.py
+
       - name: Publish refreshed JSON
         run: |
           git config user.name "github-actions[bot]"
