@@ -39,13 +39,6 @@ jobs:
       - name: Evaluate knowledge candidates (shadow mode)
         run: python scripts/knowledge_shadow.py
 
-      - name: One-time Notion write/readback smoke test
-        env:
-          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
-          GITHUB_RUN_ID: ${{ github.run_id }}
-          GITHUB_RUN_NUMBER: ${{ github.run_number }}
-        run: python scripts/notion_write_smoke_test.py
-
       - name: Publish refreshed JSON
         run: |
           git config user.name "github-actions[bot]"
