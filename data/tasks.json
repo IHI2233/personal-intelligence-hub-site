@@ -1,0 +1,21 @@
+{
+  "generatedAt": "2026-11-06T15:44:16.484649+00:00",
+  "count": 1,
+  "items": [
+    {
+      "issueNumber": 1,
+      "title": "[URL] Google Gemini Managed Agents article intake test",
+      "status": "awaiting_review",
+      "stage": "已生成 Notion 草稿",
+      "createdAt": "2026-11-06T15:44:05Z",
+      "issueUrl": "https://github.com/IHI2233/personal-intelligence-hub-site/issues/1",
+      "domain": "blog.google",
+      "pageTitle": "Build managed agents with the Gemini API",
+      "notionUrl": "https://app.notion.com/p/URL-Build-managed-agents-with-the-Gemini-API-4102a473454781819940ea45401fd8e1",
+      "error": "",
+      "pageId": "4102a473-4547-8181-9940-ea45401fd8e1",
+      "completedAt": "2026-11-06T15:44:16.484505+00:00",
+      "note": "自动采集与结构提取完成；语义分析和事实核验待人工完成。"
+    }
+  ]
+}
