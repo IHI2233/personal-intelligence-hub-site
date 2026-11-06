@@ -23,6 +23,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Validate dashboard JavaScript
+        run: node --check src/app.js
       - name: Configure Pages
         uses: actions/configure-pages@v5
         with:
