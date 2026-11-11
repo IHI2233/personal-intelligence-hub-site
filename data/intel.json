@@ -1,7 +1,7 @@
 {
   "source": "Notion 情报收件箱",
   "dataSourceId": "f12e3184-4a3a-49ce-a62c-a5367b0e574f",
-  "generatedAt": "2026-11-10T09:57:11.696921+00:00",
+  "generatedAt": "2026-11-11T09:30:31.515217+00:00",
   "count": 3,
   "items": [
     {
@@ -21,7 +21,7 @@
       "next": "若未来确有合规组织访问需求，再核实组织Daybreak Red资格、GPT-6-Cyber单独审批、项目启用、SSO/MFA、IP allowlist和实际预算；当前不将其纳入个人可用工具清单。",
       "knowledgeStatus": "已沉淀",
       "knowledgeUrl": "https://www.notion.so/4102a473454781878f64e5de7a7f2985",
-      "knowledgeProcessedAt": "2026-11-10",
+      "knowledgeProcessedAt": "2026-11-11",
       "knowledgeVersion": "knowledge-writer-v1",
       "sourceUrl": "https://developers.openai.com/api/docs/changelog",
       "notionUrl": "https://www.notion.so/4102a4734547818d8259ddb1a44ce77a"
@@ -43,7 +43,7 @@
       "next": "继续向研究团队/实验室/会议论文库追查2026年演示对应的原始论文或技术报告；未找到前保持部分验证，不把2009年设计论文或2021年MOSFET工作混作本次IGBT证据。",
       "knowledgeStatus": "证据不足",
       "knowledgeUrl": null,
-      "knowledgeProcessedAt": "2026-11-10",
+      "knowledgeProcessedAt": "2026-11-11",
       "knowledgeVersion": "knowledge-writer-v1",
       "sourceUrl": "https://www.albany.edu/news-center/news/2026-ualbany-led-research-team-achieves-rare-milestone-ultra-high-voltage-power",
       "notionUrl": "https://www.notion.so/4102a473454781c999a1d83b337ccdfa"
@@ -65,7 +65,7 @@
       "next": "后续如需把研究用于人机协作设计，再读取全文及附录，重点核对访谈方法、观察任务、分析过程和作者列出的限制；当前将其作为有边界的研究线索。",
       "knowledgeStatus": "证据不足",
       "knowledgeUrl": null,
-      "knowledgeProcessedAt": "2026-11-10",
+      "knowledgeProcessedAt": "2026-11-11",
       "knowledgeVersion": "knowledge-writer-v1",
       "sourceUrl": "https://doi.org/10.1080/07370024.2026.2744236",
       "notionUrl": "https://www.notion.so/4102a473454781a6a39ad17d95851b38"
